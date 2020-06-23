@@ -1,4 +1,4 @@
-// #ifndef HTTPREQUEST_H
+#ifndef HTTPREQUEST_H
 #define HTTPREQUEST_H
 
 #include <string>
@@ -21,4 +21,4 @@ private:
     map<string,string> header;
 };
 
-// #endif
+#endif

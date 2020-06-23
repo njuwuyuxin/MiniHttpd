@@ -1,4 +1,4 @@
-// #ifndef HTTPRESPONSE_H
+#ifndef HTTPRESPONSE_H
 #define HTTPRESPONSE_H
 
 #include <string>
@@ -39,4 +39,4 @@ private:
     string response_body;               //返回内容体
 };
 
-// #endif
+#endif
