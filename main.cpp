@@ -71,13 +71,13 @@ void accept_request(int client_sock)
     int cgi = 0;      /* becomes true if server decides this is a CGI
                        * program */
     char *query_string = NULL;
-    cout<<"get one request"<<endl;
+
     read(client_sock,(void*)buf,1024);
     string req(buf);
     HttpRequest request(req);
     auto header = request.get_header();
-    // cout<<"req method: "<<request.get_method()<<endl;
-    // cout<<"req host: "<<header.find("Host")->second<<endl;
+    cout<<"[GET REQUEST]: Host = "<<header.find("Host")->second<<endl;
+
     HttpResponse response(200);
     response.Content_Type = "text/html";
     string res_string = response.get_response();
