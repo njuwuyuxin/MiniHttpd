@@ -37,7 +37,7 @@ HttpRequest::HttpRequest(string raw_data){
     for(size_t i = 1;i<lines.size();i++){
         if(lines[i]==""||lines[i]=="\r")
         {
-            cout<<"http header trans finished"<<endl;
+            // cout<<"http header trans finished"<<endl;
             break;
         }
         size_t pos = lines[i].find_first_of(':');
@@ -62,7 +62,4 @@ HttpRequest::HttpRequest(string raw_data){
         // cout<<key<<"\t"<<val<<endl;
         header.insert(pair<string,string>(key,val));
     }
-    // auto iter = header.find("User-Agent");
-    // if(iter!=header.end())
-    //     cout<<iter->second<<endl;
 }

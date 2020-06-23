@@ -4,10 +4,10 @@ string simplePage(){
     string page;
     page += "<html>";
     page += "<head>";
-    page += "<title>Simple page</title>";
+    page += "<title>404 page not found</title>";
     page += "</head>";
     page += "<body>";
-    page += "<p> this is a simple page </p>";
+    page += "<h2> 404 Page Not Found </h2>";
     page += "</body>";
     page += "</html>";
     return page;
@@ -37,10 +37,23 @@ void HttpResponse::set_header(string key, string val){
     custom_header.insert(pair<string,string>(key,val));
 }
 
+void HttpResponse::load_from_file(string url){
+    ifstream in_file(url);
+    if(in_file.fail()){
+        cerr<<"[404]: "<<url<<" not found"<<endl;
+        response_body=simplePage();
+        return;
+    }
+    stringstream buffer;
+    buffer << in_file.rdbuf();
+    response_body = buffer.str();
+    in_file.close();
+}
+
 string HttpResponse::get_response(){
     string response;
     response += generate_header();
-    response += simplePage();
+    response += response_body;
     return response;
 }
 

@@ -5,6 +5,8 @@
 #include <map>
 #include <vector>
 #include <algorithm>
+#include <fstream>
+#include <sstream>
 #include <iostream>
 using namespace std;
 
@@ -12,6 +14,7 @@ class HttpResponse{
 public:
     HttpResponse(int st);
     void set_header(string key, string val);    //设置头部自定义字段
+    void load_from_file(string url);
     string get_response();
 
     /* 基础头部字段，供快速填充，自定义字段需手动设置 */
@@ -33,6 +36,7 @@ private:
     string server;                      //http服务器名称
     map<string,string> custom_header;   //自定义头部字段
     string generate_header();           //使用全部信息组装HTTP Response头部
+    string response_body;               //返回内容体
 };
 
 // #endif

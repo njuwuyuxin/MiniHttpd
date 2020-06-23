@@ -14,11 +14,14 @@
 #include <stdint.h>
 
 #include <iostream>
+#include <fstream>
 #include <thread>
 
 #include "HttpRequest.h"
 #include "HttpResponse.h"
 using namespace std;
+
+string baseURL = "/home/wuyuixn/Webroot";
 
 void error_die(const char *sc)
 {
@@ -75,10 +78,14 @@ void accept_request(int client_sock)
     read(client_sock,(void*)buf,1024);
     string req(buf);
     HttpRequest request(req);
+    cout<<"url: "<<request.get_url()<<endl;
+    string req_url = baseURL + request.get_url();
+    
     auto header = request.get_header();
     cout<<"[GET REQUEST]: Host = "<<header.find("Host")->second<<endl;
 
     HttpResponse response(200);
+    response.load_from_file(req_url);
     response.Content_Type = "text/html";
     string res_string = response.get_response();
     cout<<res_string<<endl;
@@ -106,7 +113,7 @@ int main(){
         if (client_sock == -1)
             error_die("accept");
         /* accept_request(&client_sock); */
-        cout<<"create accept thread,client sock_id="<<client_sock<<endl;
+        // cout<<"create accept thread,client sock_id="<<client_sock<<endl;
         thread accept_thread(accept_request,client_sock);
         accept_thread.join();
     }
