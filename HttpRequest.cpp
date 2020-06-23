@@ -62,7 +62,7 @@ HttpRequest::HttpRequest(string raw_data){
         // cout<<key<<"\t"<<val<<endl;
         header.insert(pair<string,string>(key,val));
     }
-    auto iter = header.find("User-Agent");
-    if(iter!=header.end())
-        cout<<iter->second<<endl;
+    // auto iter = header.find("User-Agent");
+    // if(iter!=header.end())
+    //     cout<<iter->second<<endl;
 }

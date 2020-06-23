@@ -17,6 +17,7 @@
 #include <thread>
 
 #include "HttpRequest.h"
+#include "HttpResponse.h"
 using namespace std;
 
 void error_die(const char *sc)
@@ -73,8 +74,16 @@ void accept_request(int client_sock)
     cout<<"get one request"<<endl;
     read(client_sock,(void*)buf,1024);
     string req(buf);
-    // cout<<req<<endl;
     HttpRequest request(req);
+    auto header = request.get_header();
+    // cout<<"req method: "<<request.get_method()<<endl;
+    // cout<<"req host: "<<header.find("Host")->second<<endl;
+    HttpResponse response(200);
+    response.Content_Type = "text/html";
+    string res_string = response.get_response();
+    cout<<res_string<<endl;
+    send(client,res_string.c_str(),strlen(res_string.c_str()),0);
+    close(client);
 }
 
 int main(){
