@@ -16,11 +16,13 @@
 #include <iostream>
 #include <fstream>
 #include <thread>
+#include <libconfig.h++>
 
 #include "HttpRequest.h"
 #include "HttpResponse.h"
 
 using namespace std;
+using namespace libconfig;
 
 class HttpServer{
 public:

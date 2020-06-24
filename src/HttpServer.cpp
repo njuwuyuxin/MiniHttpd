@@ -13,6 +13,9 @@ HttpServer::HttpServer(u_short p){
 }
 
 void HttpServer::startup(){
+    Config config;
+    config.readFile("../Minihttpdconf.cfg");
+
     int on = 1;
     struct sockaddr_in name;
 

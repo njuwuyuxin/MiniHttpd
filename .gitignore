@@ -1,9 +1,12 @@
+.vscode/
+
 .ninja_deps
 .ninja_log
 build.ninja
 rules.ninja
-.vscode/
 CMakeCache.txt
 cmake_install.cmake
 CMakeFiles/
+cmake-build-debug/
+*.a
 Minihttpd
