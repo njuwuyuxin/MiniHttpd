@@ -27,7 +27,6 @@ using namespace libconfig;
 class HttpServer{
 public:
     HttpServer();
-    HttpServer(u_short p);
     inline int get_sock_id(){ return server_sock; };
     inline u_short get_port(){ return port; };
     void start_listen();
@@ -35,7 +34,9 @@ public:
 private:
     int server_sock;
     u_short port;
-    string baseURL;
-
+    string baseURL;                         //服务器根目录
+    string index;                           //网站首页文件
+    unsigned int request_queue_length;      //请求队列长度，即最大可同时处理请求
+    void load_config(string path);
     void startup();
 };

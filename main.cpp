@@ -4,7 +4,7 @@
 using namespace std;
 
 int main(){
-    HttpServer server(9999);
-    server.start_listen();
+    HttpServer server;      //创建服务器实例，绑定端口
+    server.start_listen();  //开始监听请求
     return 0;
 }

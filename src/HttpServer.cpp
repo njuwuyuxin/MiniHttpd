@@ -1,21 +1,48 @@
 #include "HttpServer.h"
 
 HttpServer::HttpServer(){
-    baseURL = "/home/wuyuixn/Webroot";
-    port=0;
+    load_config("../Minihttpdconf.cfg");
     startup();
 }
 
-HttpServer::HttpServer(u_short p){
-    baseURL = "/home/wuyuixn/Webroot";
-    port=p;
-    startup();
+void HttpServer::load_config(string path){
+    cout<<"[INFO]: Loading config"<<endl;
+    Config config;
+    try{
+        config.readFile(path.c_str());
+        int i_port;
+        if(!config.lookupValue("server.port",i_port)){
+            cout<<"[WARN]: server port setting not found, use default setting"<<endl;
+            port = 0;
+        }
+        else{
+            port = i_port;
+        }
+        if(!config.lookupValue("server.root",baseURL)){
+            cout<<"[WARN]: server root setting not found, use default setting"<<endl;
+            baseURL = "/home/wuyuixn/Webroot";
+        }
+        if(!config.lookupValue("server.index",index)){
+            cout<<"[WARN]: server index setting not found, use default setting"<<endl;
+            index = "index.html";
+        }
+        if(!config.lookupValue("server.max_request",request_queue_length)){
+            cout<<"[WARN]: server max_request setting not found, use default setting"<<endl;
+            request_queue_length = 5;
+        }
+    }
+    catch(FileIOException io_exception){
+        cout<<"Config not found, use default settings"<<endl;
+        port = 0;
+        baseURL = "/home/wuyuixn/Webroot";
+        request_queue_length = 5;
+    }
+    catch(SettingNotFoundException set_not_found){
+        cout<<"[ERROR]: settings not found"<<endl;
+    }
 }
 
 void HttpServer::startup(){
-    Config config;
-    config.readFile("../Minihttpdconf.cfg");
-
     int on = 1;
     struct sockaddr_in name;
 
@@ -40,12 +67,12 @@ void HttpServer::startup(){
             cerr<<"[ERROR]: getsockname failed"<<endl;
         port = ntohs(name.sin_port);   //函数使用指针，就是为了这里可以将动态分配的端口返回给函数外部
     }
-    if (listen(server_sock, 5) < 0)   //listen第二个参数为连接请求队列长度，5代表最多同时接受5个连接请求
+    if (listen(server_sock, request_queue_length) < 0)   //listen第二个参数为连接请求队列长度，5代表最多同时接受5个连接请求
         cerr<<"[ERROR]: listen failed"<<endl;
 }
 
 void HttpServer::start_listen(){
-    cout<<"httpd running on port "<<port<<endl;
+    cout<<"[INFO]: Minihttpd running on port "<<port<<endl;
     int client_sock = -1;
     struct sockaddr_in client_name;
     socklen_t  client_name_len = sizeof(client_name);
@@ -71,21 +98,16 @@ void HttpServer::accept_request(int client_sock, HttpServer* t)
 {
     int client = client_sock;
     char buf[1024];
-    size_t numchars;
-    char method[255];
-    char url[255];
-    char path[512];
-    size_t i, j;
-    struct stat st;
-    int cgi = 0;      /* becomes true if server decides this is a CGI
-                       * program */
-    char *query_string = NULL;
-
     read(client_sock,(void*)buf,1024);
     string req(buf);
     HttpRequest request(req);
-    cout<<"url: "<<request.get_url()<<endl;
-    string req_url = t->baseURL + request.get_url();
+    string url = request.get_url();
+    cout<<"[INFO]: request url = "<<url<<endl;
+    string req_url;
+    if(url=="/")
+        req_url = t->baseURL + '/' + t->index;
+    else
+        req_url = t->baseURL + request.get_url();
     
     auto header = request.get_header();
     cout<<"[GET REQUEST]: Host = "<<header.find("Host")->second<<endl;
