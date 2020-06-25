@@ -1,6 +1,7 @@
 #include "HttpServer.h"
 
 HttpServer::HttpServer(){
+    HttpResponse::init_content_type_map();
     load_config("../Minihttpdconf.cfg");
     startup();
 }
@@ -114,7 +115,6 @@ void HttpServer::accept_request(int client_sock, HttpServer* t)
 
     HttpResponse response(200);
     response.load_from_file(req_url);
-    response.Content_Type = "text/html";
     string res_string = response.get_response();
     // cout<<res_string<<endl;
     send(client,res_string.c_str(),strlen(res_string.c_str()),0);
