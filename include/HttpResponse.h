@@ -8,6 +8,10 @@
 #include <fstream>
 #include <sstream>
 #include <iostream>
+
+#include <zlib.h>
+#include <zconf.h>
+#include <string.h>
 using namespace std;
 
 class HttpResponse{
@@ -15,7 +19,7 @@ public:
     HttpResponse(int st);
     void set_header(string key, string val);    //设置头部自定义字段
     void load_from_file(string url);
-    string get_response();
+    int get_response(char*& resp_buffer);
 
     static void init_content_type_map();        //初始化映射表
     static map<string,string> content_type_map; //文件扩展名与Content-Type映射表

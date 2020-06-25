@@ -62,6 +62,9 @@ void HttpResponse::init_content_type_map(){
     content_type_map.insert(pair<string,string>("mov","video/quicktime"));
     content_type_map.insert(pair<string,string>("avi","video/x-msvideo"));
     content_type_map.insert(pair<string,string>("movie","video/x-sgi-movie"));
+
+    content_type_map.insert(pair<string,string>("woff","application/font-woff"));
+    content_type_map.insert(pair<string,string>("ttf","application/octet-stream"));
 }
 
 void HttpResponse::set_header(string key, string val){
@@ -95,11 +98,75 @@ void HttpResponse::auto_set_content_type(string url){
     }
 }
 
-string HttpResponse::get_response(){
+//raw_data为原始数据，buffer为压缩后数据存储缓冲区，buffer_size为缓冲区大小
+uLong gzip_compress(string raw_data,Bytef*& buffer,int buffer_size){
+    size_t raw_data_size = raw_data.size();
+    z_stream strm;
+    z_stream d_stream;
+    d_stream.zalloc = NULL;
+    d_stream.zfree = NULL;
+    d_stream.opaque = NULL;
+    d_stream.next_in = (Bytef*)raw_data.c_str();
+    d_stream.avail_in = raw_data_size;
+    d_stream.next_out = buffer;
+    d_stream.avail_out = raw_data_size;
+
+    int ret = deflateInit2(&d_stream, Z_DEFAULT_COMPRESSION, Z_DEFLATED,
+						MAX_WBITS + 16, 8, Z_DEFAULT_STRATEGY);
+    if (Z_OK != ret)
+    {
+        cerr<<"[ERROR]: init deflate error"<<endl;
+        cout<< ret <<endl;
+    }
+
+    int err = 0;
+    for(;;) {
+        if((err = deflate(&d_stream, Z_FINISH)) == Z_STREAM_END) break;
+        if(err != Z_OK){
+            cerr<<"[ERROR]: deflate failed"<<endl;
+        }
+    }
+    if(deflateEnd(&d_stream) != Z_OK){
+        cerr<<"[ERROR]: deflate failed when end"<<endl;
+    }
+
+    return d_stream.total_out;
+}
+
+//参数为响应体存放缓冲区，返回值为响应体总字节数，等于缓冲区大小
+int HttpResponse::get_response(char*& resp_buffer){
     string response;
-    response += generate_header();
-    response += response_body;
-    return response;
+    string header(generate_header());
+    response += header;
+
+    //无压缩模式
+    if(Content_Encoding.size()==0){
+        cout<<"[DEBUG]: not gzip"<<endl;
+        response += response_body;
+        resp_buffer = new char[response.size()];
+        if(resp_buffer==NULL){
+            cout<<"[ERROR]: In HttpResponse.cpp: resp_buffer is NULL!!!"<<endl;
+        }
+        memcpy(resp_buffer,response.c_str(),response.size());
+        return response.size();
+    }
+    //gzip压缩
+    else{
+        Bytef* buffer = new Bytef[response_body.size()];
+        uLong out_size = gzip_compress(response_body,buffer,response_body.size());
+
+        //响应头和响应体拼接
+        size_t header_size = header.size();
+        resp_buffer = new char[header_size+out_size];
+        memcpy(resp_buffer,response.c_str(),header_size);
+        char* body_p = resp_buffer + header_size;
+        memcpy(body_p,buffer,out_size);
+
+        delete buffer;
+        return header_size+out_size;
+    }
+
+    
 }
 
 string HttpResponse::generate_header(){
@@ -129,6 +196,7 @@ string HttpResponse::generate_header(){
         (header += "Set-Cookie:") += Set_Cookie += "\n";
     if(WWW_Authenticate.size()!=0)
         (header += "WWW-Authenticate:") += WWW_Authenticate += "\n";
+    
     
     //基本字段添加完成后，填充用户自定义字段
     for(auto i:custom_header){

@@ -21,4 +21,6 @@ private:
     map<string,string> header;
 };
 
+std::vector<std::string> splitString(std::string srcStr, std::string delimStr,bool repeatedCharIgnored);
+
 #endif

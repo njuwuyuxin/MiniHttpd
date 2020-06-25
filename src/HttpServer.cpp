@@ -114,9 +114,27 @@ void HttpServer::accept_request(int client_sock, HttpServer* t)
     cout<<"[GET REQUEST]: Host = "<<header.find("Host")->second<<endl;
 
     HttpResponse response(200);
+
+    //判断是否使用gzip压缩格式
+    auto encode_iter = header.find("Accept-Encoding");
+    if(encode_iter!=header.end()){
+        auto list = splitString(encode_iter->second,",",false);
+        for(auto &i:list){
+            if(i[0]==' ')
+                i.erase(i.begin());
+            if(i=="gzip"){
+                response.Content_Encoding = "gzip";
+            }
+        }
+    }
+    
     response.load_from_file(req_url);
-    string res_string = response.get_response();
-    // cout<<res_string<<endl;
-    send(client,res_string.c_str(),strlen(res_string.c_str()),0);
+    char* resp_buffer = NULL;
+    int resp_size = response.get_response(resp_buffer);
+    // cout<<"[DEBUG]: resp_size = "<<resp_size<<endl;
+
+    send(client,resp_buffer,resp_size,0);
+    //由于事先不知道响应体大小，因此在内部申请空间，在外部释放
+    delete resp_buffer;
     close(client);
 }

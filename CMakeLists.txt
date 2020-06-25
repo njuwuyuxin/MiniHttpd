@@ -16,3 +16,4 @@ add_executable(Minihttpd main.cpp)
 
 target_link_libraries(Minihttpd src)
 target_link_libraries(Minihttpd -lconfig++)
+target_link_libraries(Minihttpd -lz)
