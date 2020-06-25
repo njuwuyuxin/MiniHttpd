@@ -93,15 +93,6 @@ void HttpResponse::auto_set_content_type(string url){
     if(iter!=content_type_map.end()){
         Content_Type = iter->second;
     }
-    // if(ext=="html"||ext=="htm"){
-    //     Content_Type = "text/html";
-    // }
-    // else if(ext=="css"){
-    //     Content_Type = "text/css";
-    // }
-    // else if(ext=="js"){
-    //     Content_Type = "text/javascript";
-    // }
 }
 
 string HttpResponse::get_response(){
@@ -116,6 +107,7 @@ string HttpResponse::generate_header(){
     header += version += " ";
     header += status += "\n";
     (header += "Date:") += date += "\n";
+    (header += "Server:") += server += "\n";
 
     if(Allow.size()!=0)
         (header += "Allow:") += Allow += "\n";
