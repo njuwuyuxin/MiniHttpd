@@ -33,6 +33,12 @@ HttpResponse::HttpResponse(int st){
     status = to_string(st);
     date = GetGmtTime();
     server = "Minihttpd";
+    raw_response = NULL;
+}
+HttpResponse::~HttpResponse(){
+    if(raw_response!=NULL){
+        delete raw_response;
+    }
 }
 
 void HttpResponse::init_content_type_map(){
@@ -75,6 +81,7 @@ void HttpResponse::load_from_file(string url){
     ifstream in_file(url);
     if(in_file.fail()){
         cerr<<"[404]: "<<url<<" not found"<<endl;
+        status = "404";
         response_body=simplePage();
         return;
     }
@@ -83,6 +90,14 @@ void HttpResponse::load_from_file(string url){
     buffer << in_file.rdbuf();
     response_body = buffer.str();
     in_file.close();
+}
+
+const char* HttpResponse::get_response(){
+    return raw_response;
+}
+
+unsigned int HttpResponse::get_response_size(){
+    return raw_response_size;
 }
 
 void HttpResponse::auto_set_content_type(string url){
@@ -134,7 +149,7 @@ uLong gzip_compress(string raw_data,Bytef*& buffer,int buffer_size){
 }
 
 //参数为响应体存放缓冲区，返回值为响应体总字节数，等于缓冲区大小
-int HttpResponse::get_response(char*& resp_buffer){
+void HttpResponse::generate_response(){
     string response;
     string header(generate_header());
     response += header;
@@ -143,12 +158,13 @@ int HttpResponse::get_response(char*& resp_buffer){
     if(Content_Encoding.size()==0){
         cout<<"[DEBUG]: not gzip"<<endl;
         response += response_body;
-        resp_buffer = new char[response.size()];
-        if(resp_buffer==NULL){
-            cout<<"[ERROR]: In HttpResponse.cpp: resp_buffer is NULL!!!"<<endl;
+        raw_response = new char[response.size()];
+        if(raw_response==NULL){
+            cout<<"[ERROR]: In HttpResponse.cpp: raw_response is NULL!!!"<<endl;
         }
-        memcpy(resp_buffer,response.c_str(),response.size());
-        return response.size();
+        memcpy(raw_response,response.c_str(),response.size());
+        raw_response_size = response.size();
+        return ;
     }
     //gzip压缩
     else{
@@ -157,16 +173,15 @@ int HttpResponse::get_response(char*& resp_buffer){
 
         //响应头和响应体拼接
         size_t header_size = header.size();
-        resp_buffer = new char[header_size+out_size];
-        memcpy(resp_buffer,response.c_str(),header_size);
-        char* body_p = resp_buffer + header_size;
+        raw_response = new char[header_size+out_size];
+        memcpy(raw_response,response.c_str(),header_size);
+        char* body_p = raw_response + header_size;
         memcpy(body_p,buffer,out_size);
 
         delete buffer;
-        return header_size+out_size;
-    }
-
-    
+        raw_response_size = header_size+out_size;
+        return;
+    }  
 }
 
 string HttpResponse::generate_header(){

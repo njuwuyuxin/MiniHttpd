@@ -127,14 +127,10 @@ void HttpServer::accept_request(int client_sock, HttpServer* t)
             }
         }
     }
-    
-    response.load_from_file(req_url);
-    char* resp_buffer = NULL;
-    int resp_size = response.get_response(resp_buffer);
-    // cout<<"[DEBUG]: resp_size = "<<resp_size<<endl;
 
-    send(client,resp_buffer,resp_size,0);
-    //由于事先不知道响应体大小，因此在内部申请空间，在外部释放
-    delete resp_buffer;
+    response.load_from_file(req_url);
+    response.generate_response();
+
+    send(client,response.get_response(),response.get_response_size(),0);
     close(client);
 }
