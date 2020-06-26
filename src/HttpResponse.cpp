@@ -35,6 +35,57 @@ HttpResponse::HttpResponse(int st){
     server = "Minihttpd";
     raw_response = NULL;
 }
+
+HttpResponse::HttpResponse(const HttpResponse& resp){
+    Allow = resp.Allow;
+    Content_Encoding = resp.Content_Encoding;
+    Content_Length = resp.Content_Length;
+    Content_Type = resp.Content_Type;
+    Expires = resp.Expires;
+    Last_Modified = resp.Last_Modified;
+    Location = resp.Location;
+    Refresh = resp.Refresh;
+    Set_Cookie = resp.Set_Cookie;
+    WWW_Authenticate = resp.WWW_Authenticate;
+
+    version = resp.version;
+    status = resp.status;
+    date = resp.date;
+    server = resp.server;
+    custom_header = resp.custom_header;
+    response_body = resp.response_body;
+    raw_response_size = resp.raw_response_size;
+
+    raw_response = new char[raw_response_size];
+    memcpy(raw_response,resp.raw_response,raw_response_size);
+}
+
+HttpResponse& HttpResponse::operator=(const HttpResponse& resp){
+    Allow = resp.Allow;
+    Content_Encoding = resp.Content_Encoding;
+    Content_Length = resp.Content_Length;
+    Content_Type = resp.Content_Type;
+    Expires = resp.Expires;
+    Last_Modified = resp.Last_Modified;
+    Location = resp.Location;
+    Refresh = resp.Refresh;
+    Set_Cookie = resp.Set_Cookie;
+    WWW_Authenticate = resp.WWW_Authenticate;
+
+    version = resp.version;
+    status = resp.status;
+    date = resp.date;
+    server = resp.server;
+    custom_header = resp.custom_header;
+    response_body = resp.response_body;
+    raw_response_size = resp.raw_response_size;
+
+    raw_response = new char[raw_response_size];
+    memcpy(raw_response,resp.raw_response,raw_response_size);
+    return *this;
+}
+
+
 HttpResponse::~HttpResponse(){
     if(raw_response!=NULL){
         delete raw_response;

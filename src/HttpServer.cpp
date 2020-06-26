@@ -3,7 +3,23 @@
 HttpServer::HttpServer(){
     HttpResponse::init_content_type_map();
     load_config("../Minihttpdconf.cfg");
+    init_controller_map();
     startup();
+}
+
+HttpServer::~HttpServer(){
+    for(auto i:controller_map){
+        delete i.second;
+    }
+}
+
+void HttpServer::init_controller_map(){
+    //在此注册的所有controller不要手动释放，在server对象消亡时析构函数会自动释放所有controller
+    BasicController* hello_controller = new HelloController();
+    BasicController* hello_controller2 = new HelloController2();
+    controller_map.insert(pair<string,BasicController*>("/api",hello_controller));
+    controller_map.insert(pair<string,BasicController*>("/api2",hello_controller2));
+
 }
 
 void HttpServer::load_config(string path){
@@ -104,16 +120,44 @@ void HttpServer::accept_request(int client_sock, HttpServer* t)
     HttpRequest request(req);
     string url = request.get_url();
     cout<<"[INFO]: request url = "<<url<<endl;
+    HttpResponse response(200);
+
+    vector<string> url_list = splitString(url,"/",false);
+    // cout<<url_list.size()<<endl;
+    if(url_list.size()<=2){                     //url只有一级，认为是非servlet应用
+        cout<<"[DEBUG]: request file"<<endl;
+        response = t->file_request(request);
+    }
+    else{                                       //url有多级，分析是否属于某controller
+        string route_path = "/" + url_list[1];
+        auto iter = t->controller_map.find(route_path);
+        if(iter!=t->controller_map.end()){      //找到匹配路由
+            cout<<"[DEBUG]: servlet request"<<endl;
+            response = iter->second->Accept(request);      //交给对应controller处理
+        }
+        else{                                   //未找到匹配路由，按非servlet处理
+            cout<<"[DEBUG]: request file"<<endl;
+            response = t->file_request(request);
+        }
+    }
+
+    send(client,response.get_response(),response.get_response_size(),0);
+    close(client);
+}
+
+HttpResponse HttpServer::file_request(HttpRequest request){
+    string url = request.get_url();
+    // cout<<"[INFO]: request url = "<<url<<endl;
+    HttpResponse response(200);
+
     string req_url;
     if(url=="/")
-        req_url = t->baseURL + '/' + t->index;
+        req_url = baseURL + '/' + index;
     else
-        req_url = t->baseURL + request.get_url();
-    
+        req_url = baseURL + request.get_url();
+
     auto header = request.get_header();
     cout<<"[GET REQUEST]: Host = "<<header.find("Host")->second<<endl;
-
-    HttpResponse response(200);
 
     //判断是否使用gzip压缩格式
     auto encode_iter = header.find("Accept-Encoding");
@@ -130,7 +174,5 @@ void HttpServer::accept_request(int client_sock, HttpServer* t)
 
     response.load_from_file(req_url);
     response.generate_response();
-
-    send(client,response.get_response(),response.get_response_size(),0);
-    close(client);
+    return response;
 }
