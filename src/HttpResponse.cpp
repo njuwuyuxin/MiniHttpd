@@ -124,7 +124,7 @@ uLong gzip_compress(string raw_data,Bytef*& buffer,int buffer_size){
     d_stream.next_in = (Bytef*)raw_data.c_str();
     d_stream.avail_in = raw_data_size;
     d_stream.next_out = buffer;
-    d_stream.avail_out = raw_data_size;
+    d_stream.avail_out = buffer_size;
 
     int ret = deflateInit2(&d_stream, Z_DEFAULT_COMPRESSION, Z_DEFLATED,
 						MAX_WBITS + 16, 8, Z_DEFAULT_STRATEGY);
@@ -135,11 +135,23 @@ uLong gzip_compress(string raw_data,Bytef*& buffer,int buffer_size){
     }
 
     int err = 0;
+    int flag = 0;
     for(;;) {
         if((err = deflate(&d_stream, Z_FINISH)) == Z_STREAM_END) break;
-        if(err != Z_OK){
+        if(flag > 3){
             cerr<<"[ERROR]: deflate failed,errNo = "<<err<<endl;
             break;
+        }
+
+        //输出缓冲区不足，尝试扩容，最多三次扩容失败则放弃压缩
+        if(err == Z_BUF_ERROR){
+            flag++;
+            delete buffer;
+            buffer_size = buffer_size*1.5;
+            buffer = new Bytef[buffer_size];
+            d_stream.next_out = buffer;
+            d_stream.avail_out = buffer_size;
+            cout<<"[WARN]: deflate buffer error,try larger buffer :"<<flag<<endl;
         }
     }
     if(deflateEnd(&d_stream) != Z_OK){
