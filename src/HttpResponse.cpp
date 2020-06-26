@@ -138,7 +138,8 @@ uLong gzip_compress(string raw_data,Bytef*& buffer,int buffer_size){
     for(;;) {
         if((err = deflate(&d_stream, Z_FINISH)) == Z_STREAM_END) break;
         if(err != Z_OK){
-            cerr<<"[ERROR]: deflate failed"<<endl;
+            cerr<<"[ERROR]: deflate failed,errNo = "<<err<<endl;
+            break;
         }
     }
     if(deflateEnd(&d_stream) != Z_OK){
