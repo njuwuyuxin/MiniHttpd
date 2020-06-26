@@ -11,9 +11,10 @@
 
 ### 库依赖
 - libconfig
+- zlib
 
 ### 编译
-首先确保安装libconfig全局安装
+首先确保libconfig,zlib全局安装
 
 头文件在`usr/local/include`
 
