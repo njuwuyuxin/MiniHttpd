@@ -113,7 +113,7 @@ void HttpResponse::auto_set_content_type(string url){
     }
 }
 
-//raw_data为原始数据，buffer为压缩后数据存储缓冲区，buffer_size为缓冲区大小
+//raw_data为原始数据，buffer为压缩后数据存储缓冲区，buffer_size为缓冲区大小，返回值为压缩后数据字节数
 uLong gzip_compress(string raw_data,Bytef*& buffer,int buffer_size){
     size_t raw_data_size = raw_data.size();
     z_stream strm;
@@ -140,7 +140,7 @@ uLong gzip_compress(string raw_data,Bytef*& buffer,int buffer_size){
         if((err = deflate(&d_stream, Z_FINISH)) == Z_STREAM_END) break;
         if(flag > 3){
             cerr<<"[ERROR]: deflate failed,errNo = "<<err<<endl;
-            break;
+            return 0;
         }
 
         //输出缓冲区不足，尝试扩容，最多三次扩容失败则放弃压缩
@@ -157,20 +157,17 @@ uLong gzip_compress(string raw_data,Bytef*& buffer,int buffer_size){
     if(deflateEnd(&d_stream) != Z_OK){
         cerr<<"[ERROR]: deflate failed when end"<<endl;
     }
-
     return d_stream.total_out;
 }
 
 //参数为响应体存放缓冲区，返回值为响应体总字节数，等于缓冲区大小
 void HttpResponse::generate_response(){
-    string response;
     string header(generate_header());
-    response += header;
 
     //无压缩模式
     if(Content_Encoding.size()==0){
         cout<<"[DEBUG]: not gzip"<<endl;
-        response += response_body;
+        string response = header + response_body;
         raw_response = new char[response.size()];
         if(raw_response==NULL){
             cout<<"[ERROR]: In HttpResponse.cpp: raw_response is NULL!!!"<<endl;
@@ -183,11 +180,18 @@ void HttpResponse::generate_response(){
     else{
         Bytef* buffer = new Bytef[response_body.size()];
         uLong out_size = gzip_compress(response_body,buffer,response_body.size());
-
+        //压缩失败处理
+        if(out_size == 0){
+            cout<<"[WARN]: gzip compress failed, use raw data"<<endl;
+            string().swap(Content_Encoding);    //去除编码字段
+            header = generate_header();         //重新生成header    
+            memcpy(buffer,response_body.c_str(),response_body.size());
+            out_size = response_body.size();
+        }
         //响应头和响应体拼接
         size_t header_size = header.size();
         raw_response = new char[header_size+out_size];
-        memcpy(raw_response,response.c_str(),header_size);
+        memcpy(raw_response,header.c_str(),header_size);
         char* body_p = raw_response + header_size;
         memcpy(body_p,buffer,out_size);
 
@@ -199,31 +203,31 @@ void HttpResponse::generate_response(){
 
 string HttpResponse::generate_header(){
     string header;
-    header += version += " ";
-    header += status += "\n";
-    (header += "Date:") += date += "\n";
-    (header += "Server:") += server += "\n";
+    header += (version + " ");
+    header += (status + "\n");
+    (header += "Date:") += (date + "\n");
+    (header += "Server:") += (server + "\n");
 
     if(Allow.size()!=0)
-        (header += "Allow:") += Allow += "\n";
+        (header += "Allow:") += (Allow + "\n");
     if(Content_Encoding.size()!=0)
-        (header += "Content-Encoding:") += Content_Encoding += "\n";
+        (header += "Content-Encoding:") += (Content_Encoding + "\n");
     if(Content_Length.size()!=0)
-        (header += "Content-Length:") += Content_Length += "\n";
+        (header += "Content-Length:") += (Content_Length + "\n");
     if(Content_Type.size()!=0)
-        (header += "Content-Type:") += Content_Type += "\n";
+        (header += "Content-Type:") += (Content_Type + "\n");
     if(Expires.size()!=0)
-        (header += "Expires:") += Expires += "\n";
+        (header += "Expires:") += (Expires + "\n");
     if(Last_Modified.size()!=0)
-        (header += "Last-Modified:") += Last_Modified += "\n";
+        (header += "Last-Modified:") += (Last_Modified + "\n");
     if(Location.size()!=0)
-        (header += "Location:") += Location += "\n";
+        (header += "Location:") += (Location + "\n");
     if(Refresh.size()!=0)
-        (header += "Refresh:") += Refresh += "\n";
+        (header += "Refresh:") += (Refresh + "\n");
     if(Set_Cookie.size()!=0)
-        (header += "Set-Cookie:") += Set_Cookie += "\n";
+        (header += "Set-Cookie:") += (Set_Cookie + "\n");
     if(WWW_Authenticate.size()!=0)
-        (header += "WWW-Authenticate:") += WWW_Authenticate += "\n";
+        (header += "WWW-Authenticate:") += (WWW_Authenticate + "\n");
     
     
     //基本字段添加完成后，填充用户自定义字段
