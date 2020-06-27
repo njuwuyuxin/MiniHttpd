@@ -131,7 +131,7 @@ void HttpResponse::set_header(string key, string val){
 void HttpResponse::load_from_file(string url){
     ifstream in_file(url);
     if(in_file.fail()){
-        cerr<<"[404]: "<<url<<" not found"<<endl;
+        Log::log("[404]: "+url+" not found",WARN);
         status = "404";
         response_body=simplePage();
         return;
@@ -157,7 +157,7 @@ void HttpResponse::auto_set_content_type(string url){
         return;
     }
     string ext = url.substr(pos+1);
-    cout<<"[DEBUG]: file ext="<<ext<<endl;
+    Log::log("file ext="+ext,DEBUG);
     auto iter = content_type_map.find(ext);
     if(iter!=content_type_map.end()){
         Content_Type = iter->second;
@@ -181,8 +181,8 @@ uLong gzip_compress(string raw_data,Bytef*& buffer,int buffer_size){
 						MAX_WBITS + 16, 8, Z_DEFAULT_STRATEGY);
     if (Z_OK != ret)
     {
-        cerr<<"[ERROR]: init deflate error"<<endl;
-        cout<< ret <<endl;
+        Log::log("init deflate error",ERROR);
+        // cout<< ret <<endl;
     }
 
     int err = 0;
@@ -190,7 +190,9 @@ uLong gzip_compress(string raw_data,Bytef*& buffer,int buffer_size){
     for(;;) {
         if((err = deflate(&d_stream, Z_FINISH)) == Z_STREAM_END) break;
         if(flag > 3){
-            cerr<<"[ERROR]: deflate failed,errNo = "<<err<<endl;
+            stringstream ss;
+            ss<< "deflate failed,errNo = "<<err;
+            Log::log(ss.str(),ERROR);
             return 0;
         }
 
@@ -202,11 +204,14 @@ uLong gzip_compress(string raw_data,Bytef*& buffer,int buffer_size){
             buffer = new Bytef[buffer_size];
             d_stream.next_out = buffer;
             d_stream.avail_out = buffer_size;
-            cout<<"[WARN]: deflate buffer error,try larger buffer :"<<flag<<endl;
+            stringstream ss;
+            ss<< "deflate buffer error,try larger buffer :"<<flag;
+            Log::log(ss.str(),WARN);
         }
     }
     if(deflateEnd(&d_stream) != Z_OK){
-        cerr<<"[ERROR]: deflate failed when end"<<endl;
+        Log::log("deflate failed when end",ERROR);
+        return 0;
     }
     return d_stream.total_out;
 }
@@ -217,11 +222,11 @@ void HttpResponse::generate_response(){
 
     //无压缩模式
     if(Content_Encoding.size()==0){
-        cout<<"[DEBUG]: not gzip"<<endl;
+        Log::log("not gzip",DEBUG);
         string response = header + response_body;
         raw_response = new char[response.size()];
         if(raw_response==NULL){
-            cout<<"[ERROR]: In HttpResponse.cpp: raw_response is NULL!!!"<<endl;
+            Log::log("In HttpResponse.cpp: raw_response is NULL",ERROR);
         }
         memcpy(raw_response,response.c_str(),response.size());
         raw_response_size = response.size();
@@ -233,7 +238,7 @@ void HttpResponse::generate_response(){
         uLong out_size = gzip_compress(response_body,buffer,response_body.size());
         //压缩失败处理
         if(out_size == 0){
-            cout<<"[WARN]: gzip compress failed, use raw data"<<endl;
+            Log::log("gzip compress failed, use raw data",WARN);
             string().swap(Content_Encoding);    //去除编码字段
             header = generate_header();         //重新生成header    
             memcpy(buffer,response_body.c_str(),response_body.size());

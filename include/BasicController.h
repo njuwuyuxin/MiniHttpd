@@ -3,6 +3,7 @@
 
 #include "HttpRequest.h"
 #include "HttpResponse.h"
+#include "Log.h"
 
 class BasicController{
 public:

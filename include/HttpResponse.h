@@ -12,6 +12,7 @@
 #include <zlib.h>
 #include <zconf.h>
 #include <string.h>
+#include "Log.h"
 using namespace std;
 
 class HttpResponse{

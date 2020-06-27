@@ -6,6 +6,7 @@
 #include <vector>
 #include <algorithm>
 #include <iostream>
+#include "Log.h"
 using namespace std;
 
 class HttpRequest{

@@ -31,13 +31,11 @@ HttpRequest::HttpRequest(string raw_data){
         version = first_line[2];
     }
     else{
-        cerr<<"bad http request when get method"<<endl;
+        Log::log("bad http request when get method",WARN);
     }
 
     for(size_t i = 1;i<lines.size();i++){
-        if(lines[i]==""||lines[i]=="\r")
-        {
-            // cout<<"http header trans finished"<<endl;
+        if(lines[i]==""||lines[i]=="\r"){
             break;
         }
         size_t pos = lines[i].find_first_of(':');
@@ -58,8 +56,7 @@ HttpRequest::HttpRequest(string raw_data){
         }
         else{
             val = lines[i].substr(pos+1);
-        }
-        // cout<<key<<"\t"<<val<<endl;
+        };
         header.insert(pair<string,string>(key,val));
     }
 }

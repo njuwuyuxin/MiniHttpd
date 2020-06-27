@@ -22,28 +22,28 @@ void HttpServer::init_controller_map(){
 }
 
 void HttpServer::load_config(string path){
-    cout<<"[INFO]: Loading config"<<endl;
+    Log::log("Loading config",INFO);
     Config config;
     try{
         config.readFile(path.c_str());
         int i_port;
         if(!config.lookupValue("server.port",i_port)){
-            cout<<"[WARN]: server port setting not found, use default setting"<<endl;
+            Log::log("server port setting not found, use default setting",WARN);
             port = 0;
         }
         else{
             port = i_port;
         }
         if(!config.lookupValue("server.root",baseURL)){
-            cout<<"[WARN]: server root setting not found, use default setting"<<endl;
+            Log::log("server root setting not found, use default setting",WARN);
             baseURL = "/home/wuyuixn/Webroot";
         }
         if(!config.lookupValue("server.index",index)){
-            cout<<"[WARN]: server index setting not found, use default setting"<<endl;
+            Log::log("server index setting not found, use default setting",WARN);
             index = "index.html";
         }
         if(!config.lookupValue("server.max_request",request_queue_length)){
-            cout<<"[WARN]: server max_request setting not found, use default setting"<<endl;
+            Log::log("server max_request setting not found, use default setting",WARN);
             request_queue_length = 5;
         }
     }
@@ -54,7 +54,7 @@ void HttpServer::load_config(string path){
         request_queue_length = 5;
     }
     catch(SettingNotFoundException set_not_found){
-        cout<<"[ERROR]: settings not found"<<endl;
+        Log::log("settings not found",ERROR);
     }
 }
 
@@ -64,31 +64,33 @@ void HttpServer::startup(){
 
     server_sock = socket(PF_INET, SOCK_STREAM, 0);    //使用TCP协议
     if (server_sock == -1)
-        cerr<<"[ERROR]: create socket failed"<<endl;
+        Log::log("create socket failed",ERROR);
     memset(&name, 0, sizeof(name));
     name.sin_family = AF_INET;
     name.sin_port = htons(port);
     name.sin_addr.s_addr = htonl(INADDR_ANY);
-    if ((setsockopt(server_sock, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on))) < 0)  
-    {  
-        cerr<< "[ERROR]: setsockopt failed"<<endl;
+    if ((setsockopt(server_sock, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on))) < 0)  {  
+        Log::log("setsockopt failed",ERROR);
     }
-    if (bind(server_sock, (struct sockaddr *)&name, sizeof(name)) < 0)
-        cerr<<"[ERROR]: bind failed"<<endl;
-
-    if (port == 0)  /* if dynamically allocating a port */
-    {
+    if (bind(server_sock, (struct sockaddr *)&name, sizeof(name)) < 0){
+        Log::log("bind failed",ERROR);
+    }
+    if (port == 0){  //动态分配端口
         socklen_t namelen = sizeof(name);
         if (getsockname(server_sock, (struct sockaddr *)&name, &namelen) == -1)
-            cerr<<"[ERROR]: getsockname failed"<<endl;
-        port = ntohs(name.sin_port);   //函数使用指针，就是为了这里可以将动态分配的端口返回给函数外部
+            Log::log("getsockname failed",ERROR);
+        port = ntohs(name.sin_port);
     }
-    if (listen(server_sock, request_queue_length) < 0)   //listen第二个参数为连接请求队列长度，5代表最多同时接受5个连接请求
-        cerr<<"[ERROR]: listen failed"<<endl;
+    if (listen(server_sock, request_queue_length) < 0)   //listen第二个参数为连接请求队列长度，代表最多同时接受n个连接请求
+        Log::log("listen failed",ERROR);
 }
 
 void HttpServer::start_listen(){
-    cout<<"[INFO]: Minihttpd running on port "<<port<<endl;
+    stringstream ss;
+    string s_port;
+    ss<<port;
+    ss>>s_port;
+    Log::log("Minihttpd running on port "+s_port,INFO);
     int client_sock = -1;
     struct sockaddr_in client_name;
     socklen_t  client_name_len = sizeof(client_name);
@@ -101,7 +103,7 @@ void HttpServer::start_listen(){
                 (struct sockaddr *)&client_name,
                 &client_name_len);
         if (client_sock == -1)
-            cerr<<"[ERROR]: accept failed"<<endl;
+            Log::log("accept failed",ERROR);
 
         thread accept_thread(accept_request,client_sock,this);
         accept_thread.join();
@@ -126,7 +128,7 @@ void HttpServer::accept_request(int client_sock, HttpServer* t)
         response = match_controller->Accept(request);
     }
     else{
-        cout<<"[DEBUG]: request file"<<endl;
+        Log::log("request file",DEBUG);
         response = t->file_request(request);
     }
 
@@ -136,7 +138,7 @@ void HttpServer::accept_request(int client_sock, HttpServer* t)
 
 HttpResponse HttpServer::file_request(HttpRequest& request){
     string url = request.get_url();
-    cout<<"[INFO]: request url = "<<url<<endl;
+    Log::log("request url = "+url,INFO);
     HttpResponse response(200);
 
     string req_url;
@@ -146,7 +148,7 @@ HttpResponse HttpServer::file_request(HttpRequest& request){
         req_url = baseURL + request.get_url();
 
     auto header = request.get_header();
-    cout<<"[GET REQUEST]: Host = "<<header.find("Host")->second<<endl;
+    Log::log("[GET REQUEST]: Host = "+header.find("Host")->second,INFO);
 
     //判断是否使用gzip压缩格式
     auto encode_iter = header.find("Accept-Encoding");
@@ -173,8 +175,8 @@ BasicController* HttpServer::match_url(HttpRequest& request){
         std::cmatch m;
         bool is_servlet = std::regex_search(url.c_str(),m,route_path);
         if(is_servlet){
-            cout<<"[DEBUG]: match route: "<<i.first<<endl;
-            cout<<"[DEBUG]: suffix: "<<m.suffix()<<endl;
+            Log::log("match route: "+i.first,DEBUG);
+            Log::log("suffix: "+m.suffix().str(),DEBUG);
             request.set_url("/" + m.suffix().str());
             return i.second;
         }

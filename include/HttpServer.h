@@ -19,6 +19,7 @@
 #include <regex>
 #include <libconfig.h++>
 
+#include "Log.h"
 #include "HttpRequest.h"
 #include "HttpResponse.h"
 #include "BasicController.h"

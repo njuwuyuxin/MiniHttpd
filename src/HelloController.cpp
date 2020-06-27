@@ -1,8 +1,8 @@
 #include "HelloController.h"
 
 HttpResponse HelloController::Accept(const HttpRequest& request) {
-    cout<<"[DEBUG]: This is HelloController1"<<endl;
-    cout<<"[DEBUG]: request url="<<request.get_url()<<endl;
+    Log::log("This is HelloController1",DEBUG);
+    Log::log("request url="+request.get_url(),DEBUG);
     HttpResponse response(200);
 
 
