@@ -22,7 +22,7 @@ public:
     ~HttpResponse();
     void set_header(string key, string val);    //设置头部自定义字段
     void load_from_file(string url);            //从文件读取设置响应体
-    void generate_response();                   //组装整个response
+    void generate_response();                   //组装整个response，同时设置响应大小
     const char* get_response();                 //获取字节形式的response
     unsigned int get_response_size();           //获取response字节数
 
@@ -42,6 +42,8 @@ public:
     string Refresh;
     string Set_Cookie;
     string WWW_Authenticate;
+
+    string response_body;                       //Http响应体
     
 private:
     string version;                             //http版本
@@ -49,7 +51,6 @@ private:
     string date;                                //response生成时间
     string server;                              //http服务器名称
     map<string,string> custom_header;           //自定义头部字段
-    string response_body;                       //返回内容体
     char* raw_response;                         //字节形式的原始response
     unsigned int raw_response_size;             //response总字节数
 
