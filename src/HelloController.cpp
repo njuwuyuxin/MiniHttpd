@@ -4,6 +4,7 @@ HelloController::HelloController(){
     //添加新的消息处理函数需要在这里注册
     router_map.insert(pair<string,CMF>("/login",&HelloController::Login));
     router_map.insert(pair<string,CMF>("/register",&HelloController::Register));
+    router_map.insert(pair<string,CMF>("/hello",&HelloController::Hello));
 }
 
 //仅做路径匹配，不负责参数解析
@@ -49,5 +50,12 @@ HttpResponse HelloController::Register(const HttpRequest& request){
     HttpResponse response(200);
     response.Content_Type = "application/json";
     response.response_body = "{\"statusCode\":-1,\"info\":\"注册失败\"}";
+    return response;
+}
+
+HttpResponse HelloController::Hello(const HttpRequest& request){
+    HttpResponse response(200);
+    response.Content_Type = "text/plain";
+    response.response_body = "Hello world";
     return response;
 }
