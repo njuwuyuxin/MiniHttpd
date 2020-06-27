@@ -1,5 +1,6 @@
 #include "HttpRequest.h"
 
+//最后参数为重复标志，即分隔符连续重复出现是否视为一个
 std::vector<std::string> splitString(std::string srcStr, std::string delimStr,bool repeatedCharIgnored)
 {
     std::vector<std::string> resultStringVector;
@@ -59,4 +60,30 @@ HttpRequest::HttpRequest(string raw_data){
         };
         header.insert(pair<string,string>(key,val));
     }
+    resolve_get_params();
+}
+
+void HttpRequest::resolve_get_params(){
+    size_t pos = url.find("?");
+    if(pos == string::npos)
+        return;
+    else{
+        string raw_params = url.substr(pos+1);
+        Log::log("raw_params:"+raw_params,DEBUG);
+        vector<string> param_list = splitString(raw_params,"&",true);
+        for(auto i:param_list){
+            vector<string> key_val = splitString(i,"=",false);
+            if(key_val.size()!=2){
+                Log::log("GET param format error",WARN);
+                continue;
+            }
+            else{
+                params.insert(pair<string,string>(key_val[0],key_val[1]));
+            }
+        }
+    }
+
+    //debug
+    for(auto i:params)
+        cout<<i.first<<" "<<i.second<<endl;
 }
