@@ -12,8 +12,10 @@ public:
     ~HelloController(){};
 
 private:
+    map<string,CMF> router_map;
+    CMF match_url(string url);          //路径匹配
+
     HttpResponse Login(const HttpRequest& request);
     HttpResponse Register(const HttpRequest& request);
-    map<string,CMF> router_map;
-    
+    HttpResponse Hello(const HttpRequest& request);
 };

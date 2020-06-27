@@ -176,7 +176,7 @@ BasicController* HttpServer::match_url(HttpRequest& request){
         bool is_servlet = std::regex_search(url.c_str(),m,route_path);
         if(is_servlet){
             Log::log("match route: "+i.first,DEBUG);
-            Log::log("suffix: "+m.suffix().str(),DEBUG);
+            // Log::log("suffix: "+m.suffix().str(),DEBUG);
             request.set_url("/" + m.suffix().str());
             return i.second;
         }

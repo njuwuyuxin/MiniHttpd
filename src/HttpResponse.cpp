@@ -222,7 +222,7 @@ void HttpResponse::generate_response(){
 
     //无压缩模式
     if(Content_Encoding.size()==0){
-        Log::log("not gzip",DEBUG);
+        // Log::log("not gzip",DEBUG);
         string response = header + response_body;
         raw_response = new char[response.size()];
         if(raw_response==NULL){

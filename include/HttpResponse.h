@@ -43,11 +43,10 @@ public:
     string Set_Cookie;
     string WWW_Authenticate;
 
+    string status;                              //http状态码 
     string response_body;                       //Http响应体
-    
 private:
     string version;                             //http版本
-    string status;                              //http状态码
     string date;                                //response生成时间
     string server;                              //http服务器名称
     map<string,string> custom_header;           //自定义头部字段
