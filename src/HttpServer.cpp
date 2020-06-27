@@ -19,7 +19,6 @@ void HttpServer::init_controller_map(){
     BasicController* hello_controller2 = new HelloController2();
     controller_map.insert(pair<string,BasicController*>("/api",hello_controller));
     controller_map.insert(pair<string,BasicController*>("/api2",hello_controller2));
-
 }
 
 void HttpServer::load_config(string path){
@@ -122,24 +121,41 @@ void HttpServer::accept_request(int client_sock, HttpServer* t)
     cout<<"[INFO]: request url = "<<url<<endl;
     HttpResponse response(200);
 
-    vector<string> url_list = splitString(url,"/",false);
-    // cout<<url_list.size()<<endl;
-    if(url_list.size()<=2){                     //url只有一级，认为是非servlet应用
+    bool is_servlet = false;
+    for(auto i:t->controller_map){
+        std::regex route_path("^"+i.first+"/");
+        std::cmatch m;
+        is_servlet = std::regex_search(url.c_str(),m,route_path);
+        if(is_servlet){
+            cout<<"[DEBUG]: match route: "<<i.first<<endl;
+            cout<<"[DEBUG]: suffix: "<<m.suffix()<<endl;
+            request.set_url("/" + m.suffix().str());
+            response = i.second->Accept(request);
+            break;
+        }
+    }
+    if(!is_servlet){
         cout<<"[DEBUG]: request file"<<endl;
         response = t->file_request(request);
     }
-    else{                                       //url有多级，分析是否属于某controller
-        string route_path = "/" + url_list[1];
-        auto iter = t->controller_map.find(route_path);
-        if(iter!=t->controller_map.end()){      //找到匹配路由
-            cout<<"[DEBUG]: servlet request"<<endl;
-            response = iter->second->Accept(request);      //交给对应controller处理
-        }
-        else{                                   //未找到匹配路由，按非servlet处理
-            cout<<"[DEBUG]: request file"<<endl;
-            response = t->file_request(request);
-        }
-    }
+    // vector<string> url_list = splitString(url,"/",false);
+    // // cout<<url_list.size()<<endl;
+    // if(url_list.size()<=2){                     //url只有一级，认为是非servlet应用
+    //     cout<<"[DEBUG]: request file"<<endl;
+    //     response = t->file_request(request);
+    // }
+    // else{                                       //url有多级，分析是否属于某controller
+    //     string route_path = "/" + url_list[1];
+    //     auto iter = t->controller_map.find(route_path);
+    //     if(iter!=t->controller_map.end()){      //找到匹配路由
+    //         cout<<"[DEBUG]: servlet request"<<endl;
+    //         response = iter->second->Accept(request);      //交给对应controller处理
+    //     }
+    //     else{                                   //未找到匹配路由，按非servlet处理
+    //         cout<<"[DEBUG]: request file"<<endl;
+    //         response = t->file_request(request);
+    //     }
+    // }
 
     send(client,response.get_response(),response.get_response_size(),0);
     close(client);

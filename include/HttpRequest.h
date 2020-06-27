@@ -12,13 +12,16 @@ class HttpRequest{
 public:
     HttpRequest(string raw_data);
     inline const string get_method(){ return method; };
-    inline const string get_url(){ return url; };
+    inline const string& get_url() const { return url; };
+    inline void set_url(string u){ url = u; };
     inline const map<string,string>& get_header(){ return header; };
+    const map<string,string> resolve_get_params();  //解析GET请求参数
 private:
     string method;  //该http请求方法
     string url;     //请求URL
     string version; //http版本
     map<string,string> header;
+    string req_body;    //post请求体,get请求则为空
 };
 
 std::vector<std::string> splitString(std::string srcStr, std::string delimStr,bool repeatedCharIgnored);

@@ -16,6 +16,7 @@
 #include <iostream>
 #include <fstream>
 #include <thread>
+#include <regex>
 #include <libconfig.h++>
 
 #include "HttpRequest.h"
