@@ -117,53 +117,26 @@ void HttpServer::accept_request(int client_sock, HttpServer* t)
     read(client_sock,(void*)buf,1024);
     string req(buf);
     HttpRequest request(req);
-    string url = request.get_url();
-    cout<<"[INFO]: request url = "<<url<<endl;
+
     HttpResponse response(200);
 
-    bool is_servlet = false;
-    for(auto i:t->controller_map){
-        std::regex route_path("^"+i.first+"/");
-        std::cmatch m;
-        is_servlet = std::regex_search(url.c_str(),m,route_path);
-        if(is_servlet){
-            cout<<"[DEBUG]: match route: "<<i.first<<endl;
-            cout<<"[DEBUG]: suffix: "<<m.suffix()<<endl;
-            request.set_url("/" + m.suffix().str());
-            response = i.second->Accept(request);
-            break;
-        }
+    //根据匹配情况区分文件请求与url请求
+    BasicController* match_controller = t->match_url(request);
+    if(match_controller != NULL){
+        response = match_controller->Accept(request);
     }
-    if(!is_servlet){
+    else{
         cout<<"[DEBUG]: request file"<<endl;
         response = t->file_request(request);
     }
-    // vector<string> url_list = splitString(url,"/",false);
-    // // cout<<url_list.size()<<endl;
-    // if(url_list.size()<=2){                     //url只有一级，认为是非servlet应用
-    //     cout<<"[DEBUG]: request file"<<endl;
-    //     response = t->file_request(request);
-    // }
-    // else{                                       //url有多级，分析是否属于某controller
-    //     string route_path = "/" + url_list[1];
-    //     auto iter = t->controller_map.find(route_path);
-    //     if(iter!=t->controller_map.end()){      //找到匹配路由
-    //         cout<<"[DEBUG]: servlet request"<<endl;
-    //         response = iter->second->Accept(request);      //交给对应controller处理
-    //     }
-    //     else{                                   //未找到匹配路由，按非servlet处理
-    //         cout<<"[DEBUG]: request file"<<endl;
-    //         response = t->file_request(request);
-    //     }
-    // }
 
     send(client,response.get_response(),response.get_response_size(),0);
     close(client);
 }
 
-HttpResponse HttpServer::file_request(HttpRequest request){
+HttpResponse HttpServer::file_request(HttpRequest& request){
     string url = request.get_url();
-    // cout<<"[INFO]: request url = "<<url<<endl;
+    cout<<"[INFO]: request url = "<<url<<endl;
     HttpResponse response(200);
 
     string req_url;
@@ -191,4 +164,20 @@ HttpResponse HttpServer::file_request(HttpRequest request){
     response.load_from_file(req_url);
     response.generate_response();
     return response;
+}
+
+BasicController* HttpServer::match_url(HttpRequest& request){
+    string url = request.get_url();
+    for(auto i:controller_map){
+        std::regex route_path("^"+i.first+"/");
+        std::cmatch m;
+        bool is_servlet = std::regex_search(url.c_str(),m,route_path);
+        if(is_servlet){
+            cout<<"[DEBUG]: match route: "<<i.first<<endl;
+            cout<<"[DEBUG]: suffix: "<<m.suffix()<<endl;
+            request.set_url("/" + m.suffix().str());
+            return i.second;
+        }
+    }
+    return NULL;
 }

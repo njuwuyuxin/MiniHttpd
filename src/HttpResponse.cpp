@@ -211,7 +211,7 @@ uLong gzip_compress(string raw_data,Bytef*& buffer,int buffer_size){
     return d_stream.total_out;
 }
 
-//参数为响应体存放缓冲区，返回值为响应体总字节数，等于缓冲区大小
+//生成完整响应，其中判断响应体是否压缩处理
 void HttpResponse::generate_response(){
     string header(generate_header());
 

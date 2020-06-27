@@ -39,14 +39,15 @@ public:
 private:
     int server_sock;
     u_short port;
-    string baseURL;                         //服务器根目录
-    string index;                           //网站首页文件
-    unsigned int request_queue_length;      //请求队列长度，即最大可同时处理请求
-    map<string,BasicController*> controller_map;    //路径-Controller映射表
+    string baseURL;                                     //服务器根目录
+    string index;                                       //网站首页文件
+    unsigned int request_queue_length;                  //请求队列长度，即最大可同时处理请求
+    map<string,BasicController*> controller_map;        //路径-Controller映射表
 
-    void load_config(string path);          //加载配置文件
-    void init_controller_map();             //初始化controller路径映射表
+    void load_config(string path);                      //加载配置文件
+    void init_controller_map();                         //初始化controller路径映射表
     void startup();
 
-    HttpResponse file_request(HttpRequest request);     //处理文件请求
+    BasicController* match_url(HttpRequest& request);   //匹配url属于哪个Controller
+    HttpResponse file_request(HttpRequest& request);     //处理文件请求
 };
