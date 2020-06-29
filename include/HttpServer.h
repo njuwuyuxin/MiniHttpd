@@ -12,6 +12,7 @@
 #include <sys/wait.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <sys/epoll.h>
 
 #include <iostream>
 #include <fstream>
@@ -29,6 +30,8 @@
 using namespace std;
 using namespace libconfig;
 
+const int MAX_EVENT_NUMBER = 10000;
+
 class HttpServer{
 public:
     HttpServer();
@@ -40,6 +43,7 @@ public:
 private:
     int server_sock;
     u_short port;
+    int epollfd;                                        //epoll文件描述符
     string baseURL;                                     //服务器根目录
     string index;                                       //网站首页文件
     unsigned int request_queue_length;                  //请求队列长度，即最大可同时处理请求
@@ -48,7 +52,8 @@ private:
     void load_config(string path);                      //加载配置文件
     void init_controller_map();                         //初始化controller路径映射表
     void startup();
+    void add_epoll_fd(int event_fd);                    //向内核事件表注册事件
 
     BasicController* match_url(HttpRequest& request);   //匹配url属于哪个Controller
-    HttpResponse file_request(HttpRequest& request);     //处理文件请求
+    HttpResponse file_request(HttpRequest& request);    //处理文件请求
 };

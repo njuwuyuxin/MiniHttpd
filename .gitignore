@@ -9,4 +9,5 @@ cmake_install.cmake
 CMakeFiles/
 cmake-build-debug/
 *.a
+*.o
 Minihttpd

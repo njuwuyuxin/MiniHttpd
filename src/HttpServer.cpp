@@ -75,6 +75,7 @@ void HttpServer::startup(){
     if (bind(server_sock, (struct sockaddr *)&name, sizeof(name)) < 0){
         Log::log("bind failed",ERROR);
     }
+
     if (port == 0){  //动态分配端口
         socklen_t namelen = sizeof(name);
         if (getsockname(server_sock, (struct sockaddr *)&name, &namelen) == -1)
@@ -91,22 +92,43 @@ void HttpServer::start_listen(){
     ss<<port;
     ss>>s_port;
     Log::log("Minihttpd running on port "+s_port,INFO);
-    int client_sock = -1;
-    struct sockaddr_in client_name;
-    socklen_t  client_name_len = sizeof(client_name);
-    pthread_t newthread;
 
-    while (1)
-    {
-        //accept函数用来保存请求客户端的地址相关信息
-        client_sock = accept(server_sock,
-                (struct sockaddr *)&client_name,
-                &client_name_len);
-        if (client_sock == -1)
-            Log::log("accept failed",ERROR);
+    epollfd = epoll_create(5);
+    add_epoll_fd(server_sock);      //把监听socket加入内核事件表
 
-        thread accept_thread(accept_request,client_sock,this);
-        accept_thread.join();
+    epoll_event events[MAX_EVENT_NUMBER];
+    while(1){
+        int number = epoll_wait(epollfd, events, MAX_EVENT_NUMBER, -1);
+        for (int i = 0; i < number; i++){
+            int sockfd = events[i].data.fd;
+
+            //处理新到的客户连接
+            if (sockfd == server_sock){
+                int client_sock = -1;
+                struct sockaddr_in client_name;
+                socklen_t  client_name_len = sizeof(client_name);
+                client_sock = accept(server_sock,
+                        (struct sockaddr *)&client_name,
+                        &client_name_len);
+                if (client_sock == -1){
+                    Log::log("accept failed",ERROR);
+                    continue;
+                }
+                add_epoll_fd(client_sock);      //把客户端socket加入内核事件表
+            }
+            else if (events[i].events & (EPOLLRDHUP | EPOLLHUP | EPOLLERR)){
+                Log::log("epoll end",DEBUG);
+                //服务器端关闭连接
+            }
+            //处理客户连接上接收到的数据
+            else if (events[i].events & EPOLLIN){
+                thread accept_thread(accept_request,sockfd,this);
+                accept_thread.detach();
+            }
+            else if (events[i].events & EPOLLOUT){
+                Log::log("epoll out",DEBUG);
+            }
+        }
     }
 
     close(server_sock);
@@ -182,4 +204,11 @@ BasicController* HttpServer::match_url(HttpRequest& request){
         }
     }
     return NULL;
+}
+
+void HttpServer::add_epoll_fd(int event_fd){
+    epoll_event event;
+    event.data.fd = event_fd;
+    event.events = EPOLLIN | EPOLLET | EPOLLRDHUP;
+    epoll_ctl(epollfd, EPOLL_CTL_ADD, event_fd, &event);
 }
