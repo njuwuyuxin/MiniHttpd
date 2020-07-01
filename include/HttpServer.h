@@ -48,6 +48,7 @@ private:
     int server_sock;
     u_short port;
     ThreadPool thread_pool;                             //工作线程池
+    int work_thread_count;                              //工作线程数
     int epollfd;                                        //epoll文件描述符
     string baseURL;                                     //服务器根目录
     string index;                                       //网站首页文件

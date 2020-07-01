@@ -13,6 +13,7 @@ public:
     ThreadPool(HttpServer* server, int workthread = 8);
     void append(int sockfd);                //把事件加入请求队列
     void init();                            //创建N个工作线程并运行
+    void init(int count);                   //手动指定创建N个工作线程并运行
     static void work(ThreadPool* pool);     //运行工作线程
 private:
     HttpServer* http_server;                //与之绑定的HttpServer对象

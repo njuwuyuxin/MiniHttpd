@@ -21,6 +21,14 @@ void ThreadPool::init(){
     }
 }
 
+void ThreadPool::init(int count){
+    thread_count = count;
+    for(int i=0;i<thread_count;i++){
+        thread work_thread(ThreadPool::work,this);
+        work_thread.detach();
+    }
+}
+
 void ThreadPool::work(ThreadPool* pool){
     pool->run();
 }

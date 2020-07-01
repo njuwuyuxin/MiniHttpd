@@ -5,8 +5,7 @@ HttpServer::HttpServer():thread_pool(this,8){
     load_config("../Minihttpdconf.cfg");
     init_controller_map();
     startup();
-    //启动工作线程
-    thread_pool.init();
+    thread_pool.init(work_thread_count);             //启动工作线程
 }
 
 HttpServer::~HttpServer(){
@@ -47,6 +46,10 @@ void HttpServer::load_config(string path){
         if(!config.lookupValue("server.max_request",request_queue_length)){
             Log::log("server max_request setting not found, use default setting",WARN);
             request_queue_length = 5;
+        }
+        if(!config.lookupValue("server.work_thread_count",work_thread_count)){
+            Log::log("server work_thread_count setting not found, use default setting",WARN);
+            work_thread_count = 8;
         }
     }
     catch(FileIOException io_exception){
