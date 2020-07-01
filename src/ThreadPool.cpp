@@ -11,6 +11,7 @@ void ThreadPool::append(int sockfd){
     request_list_mutex.lock();
     request_list.push(sockfd);
     request_list_mutex.unlock();
+    request_list_sem.post();
 }
 
 void ThreadPool::init(){
@@ -26,6 +27,7 @@ void ThreadPool::work(ThreadPool* pool){
 
 void ThreadPool::run(){
     while(1){
+        request_list_sem.wait();
         request_list_mutex.lock();
         if(request_list.empty()){
             request_list_mutex.unlock();
