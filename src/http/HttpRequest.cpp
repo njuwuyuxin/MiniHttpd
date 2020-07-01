@@ -1,4 +1,4 @@
-#include "HttpRequest.h"
+#include "http/HttpRequest.h"
 
 //最后参数为重复标志，即分隔符连续重复出现是否视为一个
 std::vector<std::string> splitString(std::string srcStr, std::string delimStr,bool repeatedCharIgnored)

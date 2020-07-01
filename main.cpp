@@ -1,6 +1,5 @@
 #include "HttpServer.h"
-#include "HttpRequest.h"
-#include "HttpResponse.h"
+
 using namespace std;
 
 int main(){

@@ -23,13 +23,13 @@
 #include <regex>
 #include <libconfig.h++>
 
-#include "Log.h"
-#include "HttpRequest.h"
-#include "HttpResponse.h"
-#include "ThreadPool.h"
-#include "BasicController.h"
-#include "HelloController.h"
-#include "HelloController2.h"
+#include "utils/Log.h"
+#include "http/HttpRequest.h"
+#include "http/HttpResponse.h"
+#include "thread/ThreadPool.h"
+#include "controller/BasicController.h"
+#include "controller/HelloController.h"
+#include "controller/HelloController2.h"
 
 using namespace std;
 using namespace libconfig;

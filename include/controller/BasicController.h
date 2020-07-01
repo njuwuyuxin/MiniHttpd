@@ -2,9 +2,9 @@
 #define BASIC_CONTROLLER_H
 
 #include <regex>
-#include "HttpRequest.h"
-#include "HttpResponse.h"
-#include "Log.h"
+#include "http/HttpRequest.h"
+#include "http/HttpResponse.h"
+#include "utils/Log.h"
 
 class BasicController{
 public:

@@ -1,4 +1,4 @@
-#include "HelloController.h"
+#include "controller/HelloController.h"
 
 HelloController::HelloController(){
     //添加新的消息处理函数需要在这里注册

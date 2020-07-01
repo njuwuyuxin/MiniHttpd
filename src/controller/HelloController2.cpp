@@ -1,4 +1,4 @@
-#include "HelloController2.h"
+#include "controller/HelloController2.h"
 
 HttpResponse HelloController2::Accept(const HttpRequest& request) {
     Log::log("This is HelloController2",DEBUG);
