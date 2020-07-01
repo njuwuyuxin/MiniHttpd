@@ -1,3 +1,6 @@
+#ifndef HTTP_SERVER_H
+#define HTTP_SERVER_H
+
 #include <stdio.h>
 #include <sys/socket.h>
 #include <sys/types.h>
@@ -23,6 +26,7 @@
 #include "Log.h"
 #include "HttpRequest.h"
 #include "HttpResponse.h"
+#include "ThreadPool.h"
 #include "BasicController.h"
 #include "HelloController.h"
 #include "HelloController2.h"
@@ -43,6 +47,7 @@ public:
 private:
     int server_sock;
     u_short port;
+    ThreadPool thread_pool;                             //工作线程池
     int epollfd;                                        //epoll文件描述符
     string baseURL;                                     //服务器根目录
     string index;                                       //网站首页文件
@@ -57,3 +62,5 @@ private:
     BasicController* match_url(HttpRequest& request);   //匹配url属于哪个Controller
     HttpResponse file_request(HttpRequest& request);    //处理文件请求
 };
+
+#endif

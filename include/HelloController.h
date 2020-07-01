@@ -1,3 +1,6 @@
+#ifndef HELLO_CONTROLLER_H
+#define HELLO_CONTROLLER_H
+
 #include "BasicController.h"
 
 //需要预先声明该类供typedef使用
@@ -19,3 +22,4 @@ private:
     HttpResponse Register(const HttpRequest& request);
     HttpResponse Hello(const HttpRequest& request);
 };
+#endif

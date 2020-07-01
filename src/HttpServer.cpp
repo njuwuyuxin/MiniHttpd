@@ -1,10 +1,12 @@
 #include "HttpServer.h"
 
-HttpServer::HttpServer(){
+HttpServer::HttpServer():thread_pool(this,8){
     HttpResponse::init_content_type_map();
     load_config("../Minihttpdconf.cfg");
     init_controller_map();
     startup();
+    //启动工作线程
+    thread_pool.init();
 }
 
 HttpServer::~HttpServer(){
@@ -122,8 +124,9 @@ void HttpServer::start_listen(){
             }
             //处理客户连接上接收到的数据
             else if (events[i].events & EPOLLIN){
-                thread accept_thread(accept_request,sockfd,this);
-                accept_thread.detach();
+                thread_pool.append(sockfd);
+                // thread accept_thread(accept_request,sockfd,this);
+                // accept_thread.detach();
             }
             else if (events[i].events & EPOLLOUT){
                 Log::log("epoll out",DEBUG);
