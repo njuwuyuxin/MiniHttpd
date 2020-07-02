@@ -6,6 +6,7 @@ HttpServer::HttpServer():thread_pool(this,8){
     init_controller_map();
     startup();
     thread_pool.init(work_thread_count);             //启动工作线程
+    Log::init();
 }
 
 HttpServer::~HttpServer(){
