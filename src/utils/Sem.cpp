@@ -1,4 +1,4 @@
-#include "thread/Sem.h"
+#include "utils/Sem.h"
 
 Sem::Sem(){
     sem_init(&_sem,0,0);

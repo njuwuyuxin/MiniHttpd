@@ -1,4 +1,4 @@
-#include "utils/Log.h"
+#include "log/Log.h"
 
 void Log::log(string info, Level level){
     switch(level){
