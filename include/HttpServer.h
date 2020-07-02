@@ -54,6 +54,12 @@ private:
     string index;                                       //网站首页文件
     unsigned int request_queue_length;                  //请求队列长度，即最大可同时处理请求
     map<string,BasicController*> controller_map;        //路径-Controller映射表
+    /*Log模块相关参数*/
+    string log_path;                                    //log输出目录
+    bool info_on;
+    bool debug_on;
+    bool warn_on;
+    bool error_on;
 
     void load_config(string path);                      //加载配置文件
     void init_controller_map();                         //初始化controller路径映射表

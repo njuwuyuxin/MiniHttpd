@@ -6,7 +6,7 @@ HttpServer::HttpServer():thread_pool(this,8){
     init_controller_map();
     startup();
     thread_pool.init(work_thread_count);             //启动工作线程
-    Log::init();
+    Log::init(log_path,info_on,debug_on,warn_on,info_on);
 }
 
 HttpServer::~HttpServer(){
@@ -51,6 +51,28 @@ void HttpServer::load_config(string path){
         if(!config.lookupValue("server.work_thread_count",work_thread_count)){
             Log::log("server work_thread_count setting not found, use default setting",WARN);
             work_thread_count = 8;
+        }
+
+        /*********** Log ***********/
+        if(!config.lookupValue("server.log.log_path",log_path)){
+            Log::log("server.log.log_path setting not found, use default setting",WARN);
+            log_path = "";
+        }
+        if(!config.lookupValue("server.log.info_on",info_on)){
+            Log::log("server.log.info_on setting not found, use default setting",WARN);
+            info_on = true;
+        }
+        if(!config.lookupValue("server.log.debug_on",debug_on)){
+            Log::log("server.log.debug_on setting not found, use default setting",WARN);
+            debug_on = true;
+        }
+        if(!config.lookupValue("server.log.warn_on",warn_on)){
+            Log::log("server.log.warn_on setting not found, use default setting",WARN);
+            warn_on = true;
+        }
+        if(!config.lookupValue("server.log.error_on",error_on)){
+            Log::log("server.log.error_on setting not found, use default setting",WARN);
+            error_on = true;
         }
     }
     catch(FileIOException io_exception){
