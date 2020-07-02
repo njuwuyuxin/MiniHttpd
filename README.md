@@ -40,3 +40,14 @@ cd cmake-build-debug
 cmake -G Ninja ..
 ninja
 ```
+
+### 微服务框架
+目前还在实现中
+
+若需使用微服务框架，可参考src/controller下的HelloController，实现自己的Controller类
+- 派生类需继承BasicController
+- 将派生类对象和对应路由的映射添加至HttpServer的路由表中
+- 需为派生类实现Accept函数，当有服务器收到http请求时会根据url路径分发至各controller
+- 派生类内路由使用了成员函数指针维护映射表，可参考HelloController
+- Accept函数接收一个HttpRequest参数，返回HttpResponse
+- 可使用HttpRequest类进行对请求解析，可解析http头和GET请求参数（POST请求体需自行解析）
