@@ -44,7 +44,6 @@ void ThreadPool::run(){
         int sockfd = request_list.front();
         request_list.pop();
         request_list_mutex.unlock();
-        thread accept_thread(HttpServer::accept_request,sockfd,http_server);
-        accept_thread.detach();
+        HttpServer::accept_request(sockfd,http_server);
     }
 }
