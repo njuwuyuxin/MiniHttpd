@@ -4,11 +4,12 @@
 
 - B/S模型
 - 使用epoll进行并发处理（ET模式）
-- 半连接半反应堆线程池
+- 半连接半反应堆线程池,信号量+自旋锁保证线程同步（旧版本使用互斥锁）
 - HTTP报文解析 —— GET/POST
 - 基于Controller的微服务框架
 - Webbench测试支持**上万并发连接**
 - 使用libconfig对服务器运行参数高度配置
+- 异步日志输出模块，记录服务器运行状态，支持日志信息级别筛选
 
 ### 编译环境
 - Ubuntu 16.04, CentOS7
@@ -50,4 +51,15 @@ ninja
 - 需为派生类实现Accept函数，当有服务器收到http请求时会根据url路径分发至各controller
 - 派生类内路由使用了成员函数指针维护映射表，可参考HelloController
 - Accept函数接收一个HttpRequest参数，返回HttpResponse
-- 可使用HttpRequest类进行对请求解析，可解析http头和GET请求参数（POST请求体需自行解析）
+- 可使用HttpRequest类进行对请求解析，可解析http头和GET请求参数
+
+### 压力测试
+使用Web bench进行压力测试，模拟10000个客户端，测试时间10秒
+
+`webbench -c 10000 -t 10 http://127.0.0.1:9999/`
+
+#### 使用互斥锁
+![互斥锁](https://s1.ax1x.com/2020/07/11/U1AiTg.png)
+
+#### 使用自旋锁
+![自旋锁](https://s1.ax1x.com/2020/07/11/U1AP0S.png)

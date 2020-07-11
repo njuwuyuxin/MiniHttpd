@@ -4,6 +4,7 @@
 #include <queue>
 #include <mutex>
 #include "./utils/Sem.h"
+#include "./utils/SpinMutex.h"
 using namespace std;
 
 class HttpServer;
@@ -20,7 +21,8 @@ private:
     int thread_count;                       //线程池线程数
     queue<int> request_list;                //请求队列
     Sem request_list_sem;                   //请求队列信号量
-    mutex request_list_mutex;               //请求队列互斥锁
+    //mutex request_list_mutex;               //请求队列互斥锁
+    SpinMutex request_list_spin_mutex;      //请求队列自旋锁
 
     void run();                             //每个工作线程执行函数
 };
